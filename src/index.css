@@ -18,7 +18,8 @@ body {
   text-align: center;
 }
 
-.square:focus {
+.square:focus,
+.digit:focus {
   outline: none;
 }
 
