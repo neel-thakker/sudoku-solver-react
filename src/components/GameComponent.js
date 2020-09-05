@@ -21,10 +21,6 @@ class Game extends Component {
     this.setState({ isActive: i });
   };
 
-  solve = () => {
-    console.log("Solve it is called");
-  };
-
   reset = () => {
     let newSquares = Array(81).fill(null);
     this.setState({ squares: newSquares });
@@ -83,6 +79,113 @@ class Game extends Component {
       </div>
     );
   }
-}
+
+  solve = () => {
+    console.log("Solve it is called");
+    let board = Array(9);
+    for (let i = 0; i < 9; i++) {
+      board[i] = Array(9);
+      for (let j = 0; j < 9; j++) {
+        board[i][j] = this.state.squares[i * 9 + j]
+          ? this.state.squares[i * 9 + j]
+          : 0;
+      }
+    }
+
+    if (this.solveSudoku(board)) {
+      console.log("Misson Successful");
+
+      let newSquares = Array(81).fill(0),
+        p = 0;
+
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          newSquares[p] = board[i][j];
+          p++;
+        }
+      }
+
+      this.setState({ squares: newSquares });
+    } else {
+      console.log("Invalid Input");
+
+      alert("Invalid input");
+    }
+  };
+
+  isValidInput = (board) => {
+    return null;
+  };
+
+  isValidTOPut = (i, j, n, board) => {
+    for (let k = 0; k < 9; k++) {
+      if (board[i][k] === n || board[k][j] === n) {
+        return false;
+      }
+    }
+
+    let p = Math.floor(i / 3),
+      q = Math.floor(j / 3);
+    p *= 3;
+    q *= 3;
+
+    //console.log("p=" + p + " q=" + q + " n=" + n + " i=" + i + " j=" + j);
+
+    for (let k = p; k < p + 3; k++) {
+      for (let l = q; l < q + 3; l++) {
+        if (board[k][l] === n) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }; // end-isValidTOPut
+
+  solveSudoku(board) {
+    let row = -1,
+      col = -1,
+      foundNull = false;
+
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (board[i][j] === 0) {
+          row = i;
+          col = j;
+          foundNull = true;
+          break;
+        }
+      }
+      if (foundNull) {
+        break;
+      }
+    } // end-for1
+
+    if (row === -1) {
+      return true;
+    }
+
+    for (let i = 1; i < 10; i++) {
+      if (this.isValidTOPut(row, col, i, board)) {
+        board[row][col] = i;
+        if (this.solveSudoku(board)) {
+          return true;
+        }
+        board[row][col] = 0;
+      }
+    }
+
+    return false;
+  } // end-solveSudoku
+
+  print = (board) => {
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        console.log(board[i][j] + " ");
+      }
+      console.log("\n");
+    }
+  };
+} // end-class
 
 export default Game;
