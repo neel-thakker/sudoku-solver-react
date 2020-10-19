@@ -42,6 +42,10 @@ body {
   border: 0px;
 }
 
+.digit-erase {
+  width: fit-content;
+}
+
 #root {
   width: fit-content;
   margin-left: auto;

@@ -6,28 +6,129 @@ class Game extends Component {
     super(props);
     this.state = {
       squares: Array(81).fill(null),
-      digits: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      digits_1: [1, 2, 3, 4, 5],
+      digits_2: [6, 7, 8, 9],
       isActive: null,
     };
   }
 
+  isValidInput = (i, n, squares) => {
+    let colNo = i % 9;
+    let rowNo = Math.floor(i / 9);
+
+    for (let j = 0; j < 9; j++) {
+      if (squares[9 * j + colNo] === n || squares[9 * rowNo + j] === n) {
+        console.log("colNo=", colNo, "rowNo", rowNo, " j=" + j);
+        return false;
+      }
+    } // rows and cols check done!, But same block check remaining...
+
+    let p = Math.floor(rowNo / 3),
+      q = Math.floor(colNo / 3);
+    p *= 3;
+    q *= 3;
+
+    //console.log("p=" + p + " q=" + q + " n=" + n + " i=" + i + " j=" + j);
+
+    for (let k = p; k < p + 3; k++) {
+      for (let l = q; l < q + 3; l++) {
+        if (squares[9*k + l] === n) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
   handleCellClick = (i) => {
-    let newSquares = [...this.state.squares];
-    newSquares[i] = this.state.isActive;
-    this.setState({ squares: newSquares });
+    if (this.state.isActive === null) {
+      let newSquares = [...this.state.squares];
+      newSquares[i] = this.state.isActive;
+      this.setState({ squares: newSquares });
+    } else if (this.isValidInput(i, this.state.isActive, this.state.squares)) {
+      let newSquares = [...this.state.squares];
+      newSquares[i] = this.state.isActive;
+      this.setState({ squares: newSquares });
+    } else {
+      console.log("Invalid Input", i, this.state.isActive);
+    }
   };
 
   handleNumClick = (i) => {
     this.setState({ isActive: i });
   };
 
+  erase = (i) => {
+    let newSquares = [...this.state.squares];
+    newSquares[i] = "";
+    this.setState({ squares: newSquares, isActive: "" });
+  };
+
   reset = () => {
     let newSquares = Array(81).fill(null);
     this.setState({ squares: newSquares });
-  };
+  }; // end-reset
+
+  solve = () => {
+    console.log(" 'Solve it' is called...");
+    let board = Array(9);
+    for (let i = 0; i < 9; i++) {
+      board[i] = Array(9);
+      for (let j = 0; j < 9; j++) {
+        board[i][j] = this.state.squares[i * 9 + j]
+          ? this.state.squares[i * 9 + j]
+          : 0;
+      }
+    }
+
+    if (this.solveSudoku(board)) {
+      console.log("Misson Successful");
+
+      let newSquares = Array(81).fill(0),
+        p = 0;
+
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          newSquares[p] = board[i][j];
+          p++;
+        }
+      }
+
+      this.setState({ squares: newSquares });
+    } else {
+      console.log("Invalid Input");
+
+      alert("Invalid input");
+    }
+  }; // end-solve
 
   render() {
-    let digits = this.state.digits.map((n) => {
+    let digits1 = this.state.digits_1.map((n) => {  // Number buttons from 1 to 5
+      if (n === this.state.isActive) {
+        return (
+          <button
+            key={n}
+            className="badge badge-primary m-1 digit"
+            onClick={() => this.handleNumClick(n)}
+          >
+            {n}
+          </button>
+        );
+      } else {
+        return (
+          <button
+            key={n}
+            className="badge badge-warning m-1 digit"
+            onClick={() => this.handleNumClick(n)}
+          >
+            {n}
+          </button>
+        );
+      }
+    });
+
+    let digits2 = this.state.digits_2.map((n) => { // Number buttons from 6 to 9 for second row
       if (n === this.state.isActive) {
         return (
           <button
@@ -59,7 +160,26 @@ class Game extends Component {
             onClick={(i) => this.handleCellClick(i)}
           />
         </div>
-        <div className="game-digits mt-2 ml-0 pl-0">{digits}</div>
+
+        <center>
+          <div className="game-digits mt-2 pl-0">
+            {digits1}
+          </div>
+          <div className="game-digits ml-0 pl-0">
+            {digits2}
+            <button
+              className={
+                this.state.isActive === null
+                  ? "badge badge-primary m-1 digit digit-erase"
+                  : "badge badge-warning m-1 digit digit-erase"
+              }
+              onClick={() => this.handleNumClick(null)}
+            >
+              Erase
+            </button>
+          </div>
+        </center>
+
         <div>
           <center>
             <button
@@ -78,44 +198,7 @@ class Game extends Component {
         </div>
       </div>
     );
-  }
-
-  solve = () => {
-    console.log("Solve it is called");
-    let board = Array(9);
-    for (let i = 0; i < 9; i++) {
-      board[i] = Array(9);
-      for (let j = 0; j < 9; j++) {
-        board[i][j] = this.state.squares[i * 9 + j]
-          ? this.state.squares[i * 9 + j]
-          : 0;
-      }
-    }
-
-    if (this.solveSudoku(board)) {
-      console.log("Misson Successful");
-
-      let newSquares = Array(81).fill(0),
-        p = 0;
-
-      for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-          newSquares[p] = board[i][j];
-          p++;
-        }
-      }
-
-      this.setState({ squares: newSquares });
-    } else {
-      console.log("Invalid Input");
-
-      alert("Invalid input");
-    }
-  };
-
-  isValidInput = (board) => {
-    return null;
-  };
+  } // end-render
 
   isValidTOPut = (i, j, n, board) => {
     for (let k = 0; k < 9; k++) {
